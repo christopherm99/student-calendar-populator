@@ -4,7 +4,7 @@ import (
 	"rsc.io/pdf"
 	"fmt"
 	"regexp"
-	strings "strings"
+	"strings"
 	"encoding/csv"
 	"os"
 	"strconv"
@@ -156,19 +156,20 @@ func uploadPage(w http.ResponseWriter, r *http.Request) {
 	file.Close()
 	f.Close()
 
-	pdfReader, err := pdf.Open("./temp/Schedule.pdf")
-	if err != nil {
-		panic(err)
-	}
-	sched := genSchedule(pdfReader)
-	for _, class := range sched.classes {
-		strSched = fmt.Printf("%v\n\n%v")
-	}
-	fmt.Fprintf(w, "%v", )
+	//pdfReader, err := pdf.Open("./temp/Schedule.pdf")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//sched := genSchedule(pdfReader)
+	//for _, class := range sched.classes {
+	//	strSched = ""
+	//}
+	//fmt.Fprintf(w, "%v", strSched)
 }
 
 // ===== Google API Integration =====
 
 func main() {
 	http.HandleFunc("/upload", uploadPage)
+	http.ListenAndServe(":8080", nil)
 }
