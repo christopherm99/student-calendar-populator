@@ -26,5 +26,5 @@ Either compile main.go to machine code (```go build```) or run the program direc
 ## Troubleshooting
 ### Likely errors:
 Double check that all of the the dependecies are installed. Also check you golang version. This code has been tested on golang version 1.6.2, but it may still work on other versions.
-### Stiil having errors?
+### Still having errors?
 Open a new issue on github, and make sure to include the output of the program and the output of ```go env```.
