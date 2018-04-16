@@ -1,4 +1,4 @@
-# Student Calendar Populator
+# Student Calendar Generator
 Christopher Milan, 2018
 ## Overview
 Contains golang server, and html templates.
@@ -25,6 +25,6 @@ This code relies on a few golang libraries, please install them before running t
 Either compile main.go to machine code (```go build```) or run the program directly (```go run main.go```). Now open a browser and visit ```localhost:8080```. The website should be online.
 ## Troubleshooting
 ### Likely errors:
-Double check that all of the the dependecies are installed. Also check you golang version. This code has been tested on golang version 1.6.2, but it may still work on other versions.
+Double check that all of the the dependencies are installed. Also check you golang version. This code has been tested on golang version 1.10.1 (the most recent at the time of this writing), but it may still work on other versions.
 ### Still having errors?
 Open a new issue on github, and make sure to include the output of the program and the output of ```go env```.
