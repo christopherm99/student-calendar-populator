@@ -19,3 +19,6 @@ client_secret.json
 
 # GoLand Files
 .idea/
+
+# Google API sample code
+API-example/
