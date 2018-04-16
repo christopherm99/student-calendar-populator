@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"net/http"
 	"io"
+	"io/ioutil"
 )
 
 // ===== PDF Handling =====
@@ -140,36 +141,53 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 
 // ===== Handling and Serving Website =====
 
+func homePage(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Request recieved. (Homepage)\nReading index.html. (Homepage)")
+	p, err := ioutil.ReadFile("index.html")
+	if err != nil {
+		panic(err)
+	}
+	w.Write(p)
+	fmt.Println("Responded. (Homepage)")
+}
+
 func uploadPage(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Request recieved. (Uploading)")
 	r.ParseMultipartForm(32 << 20)
 	file, _, err := r.FormFile("pdf")
 	if err != nil {
 		panic(err)
 	}
-
-	f, err := os.OpenFile("./temp/Schedule.pdf", os.O_WRONLY|os.O_CREATE, 0666)
+	fmt.Println("Recieved PDF.")
+	f, err := os.Create("Schedule.pdf")
 	if err != nil {
 		panic(err)
 	}
-
+	fmt.Println("Created file.")
 	io.Copy(f, file)
 	file.Close()
 	f.Close()
-
-	//pdfReader, err := pdf.Open("./temp/Schedule.pdf")
-	//if err != nil {
-	//	panic(err)
-	//}
-	//sched := genSchedule(pdfReader)
-	//for _, class := range sched.classes {
-	//	strSched = ""
-	//}
-	//fmt.Fprintf(w, "%v", strSched)
+	fmt.Println("Copied contents and closed file.")
+	pdfReader, err := pdf.Open("Schedule.pdf")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Opened with PDF library.")
+	sched := genSchedule(pdfReader)
+	fmt.Println("Generated Schedule.")
+	html := "<main><h1>All of your classes</h1>"
+	for _, class := range sched.classes {
+		html += fmt.Sprintf("<p>%v</p>", class.name)
+	}
+	html += "</main>"
+	w.Write([]byte(html))
 }
 
 // ===== Google API Integration =====
 
 func main() {
 	http.HandleFunc("/upload", uploadPage)
+	http.HandleFunc("/", homePage)
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	http.ListenAndServe(":8080", nil)
 }

@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Populate Calendar</title>
+    <script type="text/javascript" src="assets/js/jquery.js"></script>
+    <script type="text/javascript" src="assets/js/intercooler.js"></script>
 </head>
 <body>
-<form enctype="multipart/form-data" action="/upload" method="post">
+<main>
+<form enctype="multipart/form-data" ic-post-to="/upload" ic-target="main" method="post">
     <input type="file" name="pdf">
-    <input type="hidden" name="token" value="{{.}}">
     <input type="submit" value="upload">
 </form>
+</main>
 </body>
 </html>
