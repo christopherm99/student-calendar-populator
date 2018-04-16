@@ -1,28 +1,27 @@
 package main
 
 import (
-	"rsc.io/pdf"
-	"fmt"
-	"regexp"
-	"strings"
 	"encoding/csv"
-	"os"
-	"strconv"
-	"net/http"
-	"io"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"os"
+	"regexp"
+	"rsc.io/pdf"
+	"strconv"
+	"strings"
 )
 
 // ===== PDF Handling =====
 
 type times struct {
-	day int
+	day    int
 	period int
-	room string
+	room   string
 }
 
 type class struct {
-	name string
+	name      string
 	semester1 []times
 	semester2 []times
 }
@@ -88,43 +87,39 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 	for _, x := range text {
 		if x.Y != prevY {
 			lines = append(lines, x.S)
-			//fmt.Println("New line.")
 		} else {
-			//fmt.Println("New character on line.")
 			lines[len(lines)-1] = lines[len(lines)-1] + x.S
 		}
 		prevY = x.Y
 	}
 	var unparsedClasses []string
 	for _, line := range lines {
-		//fmt.Println(line)
 		matched, _ := regexp.MatchString("[0-9]{3}-[0-9]{2}", line)
 		if matched {
 			unparsedClasses = append(unparsedClasses, line)
 		}
 	}
-	unparsedClasses = unparsedClasses[1:len(unparsedClasses)-1]
-	var classes []struct{
-		code string
+	unparsedClasses = unparsedClasses[1 : len(unparsedClasses)-1]
+	var classes []struct {
+		code  string
 		rooms []string
 	}
 	for _, text := range unparsedClasses {
-		//fmt.Println(text)
 		hyphen := strings.Index(text, "-")
 		var rooms []string
 		if !strings.Contains(text, "/") {
 			short := strings.Replace(text[hyphen+4:len([]rune(text))], "S", "", -1)
 			re := regexp.MustCompile("[0-9]|LA")
 			strRooms := short[re.FindStringIndex(short)[0]:]
-			for i := 0; i + 1 < len(strRooms); i+=2 {
+			for i := 0; i+1 < len(strRooms); i += 2 {
 				rooms = append(rooms, string([]rune(strRooms)[i:i+2]))
 			}
 		}
 		var newClass struct {
-			code string
+			code  string
 			rooms []string
 		}
-		newClass.code = string([]rune(text)[hyphen-3:hyphen+3])
+		newClass.code = string([]rune(text)[hyphen-3 : hyphen+3])
 		newClass.rooms = rooms
 		classes = append(classes, newClass)
 	}
@@ -142,39 +137,21 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 // ===== Handling and Serving Website =====
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Request recieved. (Homepage)\nReading index.html. (Homepage)")
 	p, err := ioutil.ReadFile("index.html")
 	if err != nil {
 		panic(err)
 	}
 	w.Write(p)
-	fmt.Println("Responded. (Homepage)")
 }
 
 func uploadPage(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Request recieved. (Uploading)")
 	r.ParseMultipartForm(32 << 20)
-	file, _, err := r.FormFile("pdf")
+	file, header, err := r.FormFile("pdf")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Recieved PDF.")
-	f, err := os.Create("Schedule.pdf")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Created file.")
-	io.Copy(f, file)
-	file.Close()
-	f.Close()
-	fmt.Println("Copied contents and closed file.")
-	pdfReader, err := pdf.Open("Schedule.pdf")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Opened with PDF library.")
-	sched := genSchedule(pdfReader)
-	fmt.Println("Generated Schedule.")
+	PDFReader, err := pdf.NewReader(file, header.Size)
+	sched := genSchedule(PDFReader)
 	html := "<main><h1>All of your classes</h1>"
 	for _, class := range sched.classes {
 		html += fmt.Sprintf("<p>%v</p>", class.name)
