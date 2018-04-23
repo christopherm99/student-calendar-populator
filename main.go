@@ -11,12 +11,14 @@ import (
 	"strconv"
 	"strings"
 	"golang.org/x/oauth2"
-	"golang.org/x/net/context"
-	"log"
-	"encoding/json"
-	"golang.org/x/oauth2/google"
+	"crypto/rand"
 	"google.golang.org/api/calendar/v3"
 	"time"
+	"encoding/base64"
+	"context"
+	"html/template"
+	"encoding/json"
+	"golang.org/x/oauth2/google"
 )
 
 // ===== PDF Handling =====
@@ -152,6 +154,7 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadPage(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("function uploadPage called.")
 	r.ParseMultipartForm(32 << 20)
 	file, header, err := r.FormFile("pdf")
 	if err != nil {
@@ -159,40 +162,73 @@ func uploadPage(w http.ResponseWriter, r *http.Request) {
 	}
 	PDFReader, err := pdf.NewReader(file, header.Size)
 	sched := genSchedule(PDFReader)
+	state := randToken()
+	schedules[state] = sched
+	t, err := template.ParseFiles("login.html")
+	if err != nil {
+		panic(err)
+	}
+	t.Execute(w, genAuthURL(state))
+}
 
-	genCalendar(sched)
-	//html := "<main><h1>All of your classes</h1>"
-	//for _, class := range sched.classes {
-	//	html += fmt.Sprintf("<p>%v</p>", class.name)
-	//}
-	//html += "</main>"
-	//w.Write([]byte(html))
-
+func authPage(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(r.Form)
+	tok, err := conf.Exchange(context.Background(), r.FormValue("code"))
+	if err != nil {
+		panic(err)
+	}
+	genCalendar(schedules[r.FormValue("state")], tok)
 }
 
 // ===== Google API Integration =====
 
+var conf *oauth2.Config
+var schedules map[string]schedule
 
-func genCalendar(sched schedule) {
-	b, err := ioutil.ReadFile("client_secret.json")
-	if err == nil {
-		panic(err)
+type Credentials struct {
+	Web struct {
+		Cid     string `json:"client_id"`
+		Csecret string `json:"client_secret"`
+	} `json:"web"`
+}
+
+func genAuthURL(state string) string {
+	fmt.Println(conf.AuthCodeURL(state, oauth2.AccessTypeOffline))
+	return conf.AuthCodeURL(state, oauth2.AccessTypeOffline)
+}
+
+type User struct {
+	Sub string `json:"sub"`
+	Name string `json:"name"`
+	GivenName string `json:"given_name"`
+	FamilyName string `json:"family_name"`
+	Profile string `json:"profile"`
+	Picture string `json:"picture"`
+	Email string `json:"email"`
+	EmailVerified string `json:"email_verified"`
+	Gender string `json:"gender"`
+}
+
+// Generates CSRF Token
+// Taken from https://skarlso.github.io/2016/06/12/google-signin-with-go/
+func randToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return base64.StdEncoding.EncodeToString(b)
+}
+
+func genCalendar(sched schedule, tok *oauth2.Token) {
+	client := conf.Client(context.Background(), tok)
+	srv, err := calendar.New(client)
+	newCalEntry := calendar.CalendarListEntry{
+		Description: "Calendar created by CWS Calendar Populator.",
+		Id: "CWS-Schedule",
 	}
-
-	config, err := google.ConfigFromJSON(b, calendar.CalendarScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-
-	srv, err := calendar.New(getClient(config))
-	if err != nil {
-		log.Fatalf("Unable to retrieve Calendar client: %v", err)
-	}
-	var schedCal calendar.Calendar
-	schedCal.Summary = "Commonwealth Class Schedule"
-	schedCal.Description = "Imported from the student calendar populator from your PDF."
-
-	srv.Calendars.Insert(&schedCal)
+	srv.CalendarList.Insert(&newCalEntry)
 	for _, class := range sched.classes {
 		for _, classTime := range class.semester1 {
 			fmtDT := findDay(time.Weekday(classTime.day)).Format(time.RFC3339)
@@ -218,14 +254,13 @@ func genCalendar(sched schedule) {
 				},
 				Recurrence: []string{"RRULE:FREQ=WEEKLY;"},
 			}
-			_, err = srv.Events.Insert(schedCal.Id, event).Do()
+			_, err = srv.Events.Insert("CWS-Schedule", event).Do()
 			if err == nil {
 				panic(err)
 			}
 		}
 	}
 }
-
 
 func chooseTime(hour, min int) time.Time {
 	return time.Date(0, 0, 0, hour, min, 0, 0, time.FixedZone("UTC", 0))
@@ -371,61 +406,25 @@ func findDay(weekday time.Weekday) time.Time {
 	}
 }
 
-// Retrieve a token, saves the token, then returns the generated client.
-func getClient(config *oauth2.Config) *http.Client {
-	tokFile := "token.json"
-	tok, err := tokenFromFile(tokFile)
-	if err != nil {
-		tok = getTokenFromWeb(config)
-		saveToken(tokFile, tok)
-	}
-	return config.Client(context.Background(), tok)
-}
-
-// Request a token from the web, then returns the retrieved token.
-func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
-	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	fmt.Printf("Go to the following link in your browser then type the "+
-		"authorization code: \n%v\n", authURL)
-
-	var authCode string
-	if _, err := fmt.Scan(&authCode); err != nil {
-		log.Fatalf("Unable to read authorization code: %v", err)
-	}
-
-	tok, err := config.Exchange(oauth2.NoContext, authCode)
-	if err != nil {
-		log.Fatalf("Unable to retrieve token from web: %v", err)
-	}
-	return tok
-}
-
-// Retrieves a token from a local file.
-func tokenFromFile(file string) (*oauth2.Token, error) {
-	f, err := os.Open(file)
-	defer f.Close()
-	if err != nil {
-		return nil, err
-	}
-	tok := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(tok)
-	return tok, err
-}
-
-// Saves a token to a file path.
-func saveToken(path string, token *oauth2.Token) {
-	fmt.Printf("Saving credential file to: %s\n", path)
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	defer f.Close()
-	if err != nil {
-		log.Fatalf("Unable to cache oauth token: %v", err)
-	}
-	json.NewEncoder(f).Encode(token)
-}
-
 func main() {
+	secret, err := ioutil.ReadFile("./client_secret.json")
+	if err != nil {
+		panic(err)
+	}
+
+	var c Credentials
+	json.Unmarshal(secret, &c)
+	conf = &oauth2.Config{
+		ClientID: c.Web.Cid,
+		ClientSecret: c.Web.Csecret,
+		RedirectURL: "http://localhost:8080/auth",
+		Scopes: []string{"https://www.googleapis.com/auth/userinfo.email", calendar.CalendarScope},
+		Endpoint: google.Endpoint,
+	}
+	schedules = make(map[string]schedule)
 	http.HandleFunc("/upload", uploadPage)
 	http.HandleFunc("/", homePage)
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+	http.HandleFunc("/auth", authPage)
 	http.ListenAndServe(":8080", nil)
 }
