@@ -7,18 +7,19 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"rsc.io/pdf"
 	"strconv"
 	"strings"
-	"golang.org/x/oauth2"
 	"crypto/rand"
-	"google.golang.org/api/calendar/v3"
 	"time"
 	"encoding/base64"
 	"context"
 	"html/template"
 	"encoding/json"
+
+	"google.golang.org/api/calendar/v3"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"rsc.io/pdf"
 )
 
 // ===== PDF Handling =====
