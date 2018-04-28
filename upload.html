@@ -1,1 +1,22 @@
-<h1>{{.}}</h1>
+<div class="mdl-card__title">
+    <h1 class="mdl-card__title-text">Schedule Generator</h1>
+</div>
+<div class="mdl-card__supporting-text">
+    Please choose an export format.
+</div>
+<div class="mdl-card__actions mdl-card--border">
+    <form action="/login" id="google">
+        <input type="text" hidden value="{{.}}" name="state">
+    </form>
+    <button form="google" type="submit"
+            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+        Sign in with Google
+    </button>
+    <button form="ics" type="submit"
+            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+        iCalendar
+    </button>
+    <form action="/ics" id="ics">
+        <input type="text" hidden value="{{.}}" name="state">
+    </form>
+</div>
