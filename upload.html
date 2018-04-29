@@ -2,7 +2,9 @@
     <h1 class="mdl-card__title-text">Schedule Generator</h1>
 </div>
 <div class="mdl-card__supporting-text">
-    Please choose an export format.
+    Please choose an export format. Currently iCalendar exports are not supported. By clicking Sign in with Google,
+    you will be redirected to the sign in page for your Google Account, allowing us to enter the information from your
+    PDF into your Google Calendar.
 </div>
 <div class="mdl-card__actions mdl-card--border">
     <form action="/login" id="google">
@@ -10,10 +12,10 @@
     </form>
     <button form="google" type="submit"
             class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
-        Sign in with Google
+        <img style="height: 18px; width: 18px;" src="/assets/images/g-logo.png"> Sign in with Google
     </button>
     <button form="ics" type="submit"
-            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" disabled>
         iCalendar
     </button>
     <form action="/ics" id="ics">

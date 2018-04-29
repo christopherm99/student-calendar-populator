@@ -30,6 +30,6 @@ Either compile main.go to machine code (```go build```) or run the program direc
 ## Troubleshooting
 
 ### Likely errors:
-Double check that all of the the dependencies are installed. Also check you golang version. This code has been tested on golang version 1.10.1 (the most recent at the time of this writing), but it may still work on other versions.
+Double check that all of the the dependencies are installed. Also check you Golang version. This code has been tested on Golang version 1.10.1 (the most recent at the time of this writing), but it may still work on other versions.
 ### Still having errors?
 Open a new issue on github, and make sure to include the output of the program and the output of ```go env```.

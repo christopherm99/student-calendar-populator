@@ -20,5 +20,8 @@ client_secret.json
 # GoLand Files
 .idea/
 
+# PyCharm Files
+venv/
+
 # Google API sample code
 API-example/

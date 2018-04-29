@@ -7,18 +7,25 @@
     <script type="text/javascript" src="assets/js/intercooler.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.red-indigo.min.css"/>
+    <link rel="icon" href="assets/images/favicon.ico">
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <style>
         .input-card.mdl-card {
-            width: 75vw;
+            width: 50vw;
             left: 50%;
-            margin-left:-37.5vw;
+            margin-left: -25vw;
             margin-top: 15px;
         }
+
+        .mdl-card__supporting-text {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
         .about-card.mdl-card {
-            width: 75vw;
+            width: 50vw;
             left: 50%;
-            margin-left:-37.5vw;
+            margin-left: -25vw;
             margin-top: 15px;
         }
     </style>
@@ -47,8 +54,11 @@
         <div class="mdl-layout__drawer">
             <span class="mdl-layout-title">Scheduler</span>
             <nav class="mdl-navigation">
-                <a class="mdl-navigation__link" href="/about">About</a>
-                <a class="mdl-navigation__link" href="https://github.com/christopherm99/student-calendar-populator/issues">Troubleshooting</a>
+                <a class="mdl-navigation__link" href="http://github.com/christopherm99/student-calendar-populator">Repository</a>
+                <a class="mdl-navigation__link"
+                   href="https://github.com/christopherm99/student-calendar-populator/issues">Troubleshooting</a>
+                <a class="mdl-navigation__link"
+                   href="https://gist.github.com/christopherm99/25f33f3c2a0b7c5d8092f9e876b5eb3e">Backend</a>
             </nav>
         </div>
         <main class="mdl-layout__content">
@@ -57,9 +67,12 @@
                     <div class="mdl-card__title">
                         <h1 class="mdl-card__title-text">Schedule Generator</h1>
                     </div>
-                    <div class="mdl-card__supporting-text">
-                        In order to populate your calendar with events,
-                        we require you to upload the PDF emailed to you containing your schedule.
+                    <div id="inputText" class="mdl-card__supporting-text">
+                        <img src="assets/images/example.jpg" align="left" style="height: 200px; padding-right: 15px"> In
+                        order to populate your calendar with events, we require you to upload the PDF emailed to you by
+                        Ms. Jackman at the beginning of the year containing your schedule. It should look like the image
+                        to the left. Please click Browse, select your PDF, and then click submit. You will be prompted
+                        to sign in with Google so that we can access your Calendar.
                     </div>
                     <div class="mdl-card__actions mdl-card--border">
                         <form enctype="multipart/form-data" ic-post-to="/upload" ic-target=".input-card" method="post">
@@ -89,16 +102,21 @@
                         "Repository" below, where instructions are given on how to set it up.
                     </div>
                     <div class="mdl-card__actions mdl-card--border">
-                        <button formaction="http://github.com"
-                                class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
-                            Backend
+                        <form method="get"
+                              action="https://gist.github.com/christopherm99/25f33f3c2a0b7c5d8092f9e876b5eb3e"
+                              id="gist">
+                        </form>
+                        <form method="get" action="http://github.com/christopherm99/student-calendar-populator"
+                              id="repo">
+                        </form>
+                        <button form="gist" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect"
+                                type="submit">Backend
                         </button>
-                        <button formaction="http://github.com/christopherm99/student-calendar-populator"
-                                class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
-                            Repository
+                        <button form="repo" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect"
+                                type="submit">Repository
                         </button>
+                    </div>
                 </div>
-            </div>
             </div>
         </main>
     </div>
