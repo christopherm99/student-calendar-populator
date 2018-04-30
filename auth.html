@@ -48,7 +48,7 @@
             <span class="mdl-layout-title">Scheduler</span>
             <nav class="mdl-navigation">
                 <a class="mdl-navigation__link"
-                   href="https://github.com/christopherm99/student-calendar-populator/issues/new">Troubleshooting</a>
+                   href="https://github.com/christopherm99/student-calendar-populator/issues">Troubleshooting</a>
                 <a class="mdl-navigation__link"
                    href="https://gist.github.com/christopherm99/25f33f3c2a0b7c5d8092f9e876b5eb3e">Backend</a>
                 <a class="mdl-navigation__link" href="http://github.com/christopherm99/student-calendar-populator">Repository</a>
@@ -61,23 +61,17 @@
                         <h1 class="mdl-card__title-text">Schedule Generator</h1>
                     </div>
                     <div id="inputText" class="mdl-card__supporting-text">
-                        <img src="assets/images/example.jpg" align="left" style="height: 200px; padding-right: 15px"> In
-                        order to populate your calendar with events, we require you to upload the PDF emailed to you by
-                        Ms. Jackman at the beginning of the year containing your schedule. It should look like the image
-                        to the left. Please click Browse, select your PDF, and then click submit. You will be prompted
-                        to sign in with Google so that we can access your Calendar.
+                        Thanks for using this website! Your calendar shoud be ready now, try heading to <a
+                            href="https://calendar.google.com">Google Calendar</a> to check it out!
                     </div>
                     <div class="mdl-card__actions mdl-card--border">
-                        <form enctype="multipart/form-data" ic-post-to="/verify" ic-target=".input-card" method="post">
-                            <label class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
-                                Browse
-                                <input type="file" style="display: none" name="pdf">
-                            </label>
-                            <label class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
-                                Submit
-                                <input type="submit" style="display: none">
-                            </label>
-                        </form>
+                        <form method="get" action="/" id="home"></form>
+                        <form method="get" action="http://github.com/christopherm99/student-calendar-populator"
+                              id="repo"></form>
+                        <button form="home" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect"
+                                type="submit">Home</button>
+                        <button form="repo" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect"
+                                type="submit">Repository</button>
                     </div>
                 </div>
                 <div class="about-card mdl-card mdl-shadow--2dp">
@@ -87,7 +81,8 @@
                     <div class="mdl-card__supporting-text">
                         This website, made by Christopher Milan for a Computer Science 2 Final Project, takes the user
                         specific PDF schedule and converts it into Google Calendar events. These can be easily accessed
-                        from <a href="https://calendar.google.com">Google Calendar</a> an then imported into your prefered calendar service. PDFs are
+                        from <a href="calendar.google.com">Google Calendar</a> an then imported into your prefered
+                        calendar service. PDFs are
                         processed and converted by the websites' backend, written in Golang, which takes advantage of
                         Google's API for Google Calendar. The backend is hosted on GitHub.com, and can be accessed by
                         clicking on "Backend" below. To learn more about running it yourself, check out the GitHub

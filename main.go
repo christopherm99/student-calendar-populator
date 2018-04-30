@@ -41,9 +41,6 @@ type schedule struct {
 }
 
 func genSchedule(pdfReader *pdf.Reader) schedule {
-	if pdfReader.NumPage() != 1 {
-		panic(fmt.Sprintf("This PDF has %v pages not 1.", pdfReader.NumPage()))
-	}
 	text := pdfReader.Page(1).Content().Text
 	file, err := os.Open("courses.csv")
 	if err != nil {
@@ -155,9 +152,26 @@ func verifyPage(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(32 << 20)
 	file, header, err := r.FormFile("pdf")
 	if err != nil {
-		panic(err)
+		t, _ := template.ParseFiles("error.html")
+		t.Execute(w, err)
+		return
 	}
 	PDFReader, err := pdf.NewReader(file, header.Size)
+	if err != nil {
+		t, _ := template.ParseFiles("error.html")
+		t.Execute(w, err)
+		return
+	}
+	if PDFReader == nil {
+		t, _ := template.ParseFiles("error.html")
+		t.Execute(w, "invalid memory address or nil pointer dereference")
+		return
+	}
+	if PDFReader.NumPage() != 1 {
+		t, _ := template.ParseFiles("error.html")
+		t.Execute(w, "This doesn't seem to be a schedule")
+		return
+	}
 	sched := genSchedule(PDFReader)
 	state := randToken()
 	schedules[state] = sched
@@ -178,15 +192,7 @@ func verifyPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func exportPage(w http.ResponseWriter, r *http.Request) {
-	r.ParseMultipartForm(32 << 20)
-	file, header, err := r.FormFile("pdf")
-	if err != nil {
-		panic(err)
-	}
-	PDFReader, err := pdf.NewReader(file, header.Size)
-	sched := genSchedule(PDFReader)
-	state := randToken()
-	schedules[state] = sched
+	state := r.FormValue("state")
 	t, err := template.ParseFiles("export.html")
 	if err != nil {
 		panic(err)
@@ -196,10 +202,6 @@ func exportPage(w http.ResponseWriter, r *http.Request) {
 
 func loginPage(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, genAuthURL(r.FormValue("state")), http.StatusTemporaryRedirect)
-}
-
-func icsPage(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
 }
 
 func authPage(w http.ResponseWriter, r *http.Request) {
@@ -235,6 +237,7 @@ func authPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	genCalendar(schedules[state], srv)
+	http.ServeFile(w, r, "auth.html")
 }
 
 // ===== Google API Integration =====
@@ -479,7 +482,7 @@ func main() {
 	http.HandleFunc("/verify", verifyPage)
 	http.HandleFunc("/auth", authPage)
 	http.HandleFunc("/login", loginPage)
-	http.HandleFunc("/ics", icsPage)
+	http.HandleFunc("/export", exportPage)
 	http.Handle("/trouble", http.RedirectHandler("https://www.github.com/christopherm99/student-calendar-populator", 300))
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	http.ListenAndServe(":8080", nil)

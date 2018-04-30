@@ -15,10 +15,11 @@
     Troubleshoot to submit an issue on the GitHub page. If the classes are correct, please click Confirm to continue.
 </div>
 <div class="mdl-card__actions mdl-card--border">
-    <form action="/export" id="confirm">
+    <form id="confirm" ic-post-to="/export" ic-target=".input-card" method="post">
         <input type="text" hidden value="{{.State}}" name="state">
     </form>
-    <form method="get" action="https://github.com/christopherm99/student-calendar-populator/issues" id="trouble"></form>
+    <form method="get" action="https://github.com/christopherm99/student-calendar-populator/issues/new" id="trouble">
+    </form>
     <form method="get" action="/" id="back"></form>
     <button form="confirm" type="submit" style="align-self: right"
             class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Confirm

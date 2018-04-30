@@ -1,0 +1,17 @@
+<div class="mdl-card__title">
+    <h1 class="mdl-card__title-text">Schedule Generator</h1>
+</div>
+<div class="mdl-card__supporting-text">
+    Oops, something went wrong. This is what we got: {{.}}. You can either try again, by clicking Go Back, or submit an
+    issue on GitHub, by clicking Troubleshoot.
+</div>
+<div class="mdl-card__actions mdl-card--border">
+    <form method="get" action="https://github.com/christopherm99/student-calendar-populator/issues/new" id="trouble"></form>
+    <form method="get" action="/" id="back"></form>
+    <button form="back" type="submit"
+            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Go Back
+    </button>
+    <button form="trouble" type="submit"
+            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Troubleshoot
+    </button>
+</div>
