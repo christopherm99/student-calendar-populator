@@ -1,0 +1,32 @@
+<div class="mdl-card__title">
+    <h1 class="mdl-card__title-text">Schedule Generator</h1>
+</div>
+<div class="mdl-card__supporting-text">
+    <ul class="mdl-list">
+    {{range .Classes}}
+        <li class="mdl-list__item">
+            <span class="mdl-list__item-primary-content">
+            {{.}}
+            </span>
+        </li>
+    {{end}}
+    </ul>
+    Please verify that these are your classes. If they are not, then you can click on Go Back, to try again, or click on
+    Troubleshoot to submit an issue on the GitHub page. If the classes are correct, please click Confirm to continue.
+</div>
+<div class="mdl-card__actions mdl-card--border">
+    <form action="/export" id="confirm">
+        <input type="text" hidden value="{{.State}}" name="state">
+    </form>
+    <form method="get" action="https://github.com/christopherm99/student-calendar-populator/issues" id="trouble"></form>
+    <form method="get" action="/" id="back"></form>
+    <button form="confirm" type="submit" style="align-self: right"
+            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Confirm
+    </button>
+    <button form="back" type="submit"
+            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Go Back
+    </button>
+    <button form="trouble" type="submit"
+            class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Troubleshoot
+    </button>
+</div>
