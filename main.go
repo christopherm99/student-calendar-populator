@@ -42,6 +42,7 @@ type schedule struct {
 
 func genSchedule(pdfReader *pdf.Reader) schedule {
 	text := pdfReader.Page(1).Content().Text
+	fmt.Println(text)
 	file, err := os.Open("courses.csv")
 	if err != nil {
 		panic(err)
@@ -99,6 +100,7 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 		}
 		prevY = x.Y
 	}
+	fmt.Println(lines)
 	var unparsedClasses []string
 	for _, line := range lines {
 		matched, _ := regexp.MatchString("[0-9]{3}-[0-9]{2}", line)
@@ -116,7 +118,8 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 		var rooms []string
 		if !strings.Contains(text, "/") {
 			short := strings.Replace(text[hyphen+4:len([]rune(text))], "S", "", -1)
-			re := regexp.MustCompile("[0-9]|LA")
+			fmt.Printf("SHORT: %v\n", short)
+			re := regexp.MustCompile("[0-9]|LA|4-ART|Gym")
 			strRooms := short[re.FindStringIndex(short)[0]:]
 			for i := 0; i+1 < len(strRooms); i += 2 {
 				rooms = append(rooms, string([]rune(strRooms)[i:i+2]))
@@ -134,6 +137,7 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 	for i, class := range classes {
 		schedule.classes = append(schedule.classes, courses[class.code])
 		for day, room := range classes[i].rooms {
+			fmt.Printf("Class number: %v\nDay: %v\nRoom: %v\n", i, day, room)
 			schedule.classes[i].semester1[day].room = room
 			schedule.classes[i].semester2[day].room = room
 		}
