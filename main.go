@@ -43,7 +43,7 @@ type schedule struct {
 
 func genSchedule(pdfReader *pdf.Reader) schedule {
 	text := pdfReader.Page(1).Content().Text
-	fmt.Println(text)
+	// fmt.Println(text)
 	file, err := os.Open("courses.csv")
 	if err != nil {
 		panic(err)
@@ -101,7 +101,7 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 		}
 		prevY = x.Y
 	}
-	fmt.Println(lines)
+	// fmt.Println(lines)
 	var unparsedClasses []string
 	for _, line := range lines {
 		matched, _ := regexp.MatchString("[0-9]{3}-[0-9]{2}", line)
@@ -119,10 +119,10 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 		var rooms []string
 		if !strings.Contains(text, "/") {
 			short := strings.Replace(text[hyphen+4:len([]rune(text))], "S", "", -1)
-			fmt.Printf("SHORT: %v\n", short)
+			// fmt.Printf("SHORT: %v\n", short)
 			re := regexp.MustCompile("[0-9]|LA|4-ART|Gym")
 			strRooms := short[re.FindStringIndex(short)[0]:]
-			fmt.Println("StrRooms: ", strRooms)
+			// fmt.Println("StrRooms: ", strRooms)
 			if strings.Contains(strRooms, "4-ART") {
 				for i := 0; i+1 < len(strRooms); i += 5 {
 					rooms = append(rooms, "4-ART")
@@ -149,7 +149,7 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 	for i, class := range classes {
 		schedule.classes = append(schedule.classes, courses[class.code])
 		for day, room := range classes[i].rooms {
-			fmt.Printf("Class number: %v\nDay: %v\nRoom: %v\n", i, day, room)
+			// fmt.Printf("Class number: %v\nDay: %v\nRoom: %v\n", i, day, room)
 			schedule.classes[i].semester1[day].room = room
 			schedule.classes[i].semester2[day].room = room
 		}
@@ -316,10 +316,10 @@ func icsPage(w http.ResponseWriter, r *http.Request) {
 			data[i].Room = meeting.room
 			data[i].Name = class.name
 			i++
-			fmt.Printf("Beginning: %v\nEnding: %v\nRoom: %v\nName: %v\n", begDT, endDT, meeting.room, class.name)
+			// fmt.Printf("Beginning: %v\nEnding: %v\nRoom: %v\nName: %v\n", begDT, endDT, meeting.room, class.name)
 		}
 	}
-	fmt.Println(data)
+	// fmt.Println(data)
 	jdata, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
@@ -329,12 +329,15 @@ func icsPage(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	defer os.Remove(fmt.Sprintf("%v.json", state))
-	cmd := exec.Command("python3", fmt.Sprintf("icsConv.py %v.json", state))
-	ics, err := cmd.Output()
+	cmd := exec.Command("python3", "icsConv.py", fmt.Sprintf("%v.json", state))
+	ics, err := cmd.CombinedOutput()
 	if err != nil {
+		fmt.Println(string(ics))
 		panic(err)
 	}
+	w.Header().Add("Content-Disposition", "Attachment; filename=\"cal.ics\"")
 	w.Write(ics)
+	http.Redirect(w, r, "/" http.StatusTemporaryRedirect)
 }
 
 // ===== Google API Integration =====
