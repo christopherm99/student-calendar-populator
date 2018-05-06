@@ -329,7 +329,7 @@ func icsPage(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	defer os.Remove(fmt.Sprintf("%v.json", state))
-	cmd := exec.Command("./icsConv.py", fmt.Sprintf("%v.json", state))
+	cmd := exec.Command("python3", fmt.Sprintf("icsConv.py %v.json", state))
 	ics, err := cmd.Output()
 	if err != nil {
 		panic(err)
