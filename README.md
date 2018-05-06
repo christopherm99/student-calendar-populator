@@ -14,7 +14,7 @@ This code relies on the following golang packages.
 
 This program also requires Python 3.6. Follow the steps listed at [the Python website](https://www.python.org/downloads)
 
-###Python Dependencies:
+### Python Dependencies:
 
 This program utilizes the ics.py library. Please install that by running ```pip install ics``` or ```pip3 install ics```.
 
