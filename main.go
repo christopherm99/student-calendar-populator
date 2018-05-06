@@ -121,8 +121,19 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 			fmt.Printf("SHORT: %v\n", short)
 			re := regexp.MustCompile("[0-9]|LA|4-ART|Gym")
 			strRooms := short[re.FindStringIndex(short)[0]:]
-			for i := 0; i+1 < len(strRooms); i += 2 {
-				rooms = append(rooms, string([]rune(strRooms)[i:i+2]))
+			fmt.Println("StrRooms: ", strRooms)
+			if strings.Contains(strRooms, "4-ART") {
+				for i := 0; i+1 < len(strRooms); i += 5 {
+					rooms = append(rooms, "4-ART")
+				}
+			} else if strings.Contains(strRooms, "Gym") {
+				for i := 0; i+1 < len(strRooms); i += 3 {
+					rooms = append(rooms, "Gym")
+				}
+			} else {
+				for i := 0; i+1 < len(strRooms); i += 2 {
+					rooms = append(rooms, string([]rune(strRooms)[i:i+2]))
+				}
 			}
 		}
 		var newClass struct {
@@ -150,7 +161,6 @@ func genSchedule(pdfReader *pdf.Reader) schedule {
 func homePage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "index.html")
 }
-
 
 func verifyPage(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(32 << 20)
@@ -183,16 +193,20 @@ func verifyPage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	data := struct{
-		State string
+	data := struct {
+		State   string
 		Classes []string
 	}{
-		State:state,
+		State: state,
 	}
 	for _, class := range sched.classes {
 		data.Classes = append(data.Classes, class.name)
 	}
 	t.Execute(w, data)
+}
+
+func updatePage(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func exportPage(w http.ResponseWriter, r *http.Request) {
