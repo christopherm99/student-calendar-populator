@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -205,10 +206,6 @@ func verifyPage(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, data)
 }
 
-func updatePage(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func exportPage(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
 	t, err := template.ParseFiles("export.html")
@@ -258,6 +255,88 @@ func authPage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "auth.html")
 }
 
+func icsPage(w http.ResponseWriter, r *http.Request) {
+	state := r.FormValue("state")
+	found := false
+	for key := range schedules {
+		if !found {
+			if key == state {
+				found = true
+			}
+		}
+	}
+	if !found {
+		fmt.Println("CSRF Attack Identified.")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	defer delete(schedules, state)
+	sched := schedules[state]
+	var data []struct{
+		Beginning string
+		Ending string
+		Room string
+		Name string
+	}
+	data = make([]struct{Beginning string; Ending string; Room string; Name string}, len(sched.classes)*5)
+	i := 0
+	for _, class := range sched.classes {
+		for _, meeting := range class.semester1 {
+			beg, duration := lookupTime(meeting.day, meeting.period)
+			end := beg.Add(duration)
+			begH, begM, _ := beg.Clock()
+			endH, endM, _ := end.Clock()
+			var begStr, endStr string
+			if begH < 10 {
+				begStr = fmt.Sprintf("0%v:", begH)
+			} else {
+				begStr = fmt.Sprintf("%v:", begH)
+			}
+			if begM < 10 {
+				begStr = fmt.Sprintf("%v0%v:00", begStr, begM)
+			} else {
+				begStr = fmt.Sprintf("%v%v:00", begStr, begM)
+			}
+			if endH < 10 {
+				endStr = fmt.Sprintf("0%v:", endH)
+			} else {
+				endStr = fmt.Sprintf("%v:", endH)
+			}
+			if endM < 10 {
+				endStr = fmt.Sprintf("%v0%v:00", endStr, endM)
+			} else {
+				endStr = fmt.Sprintf("%v%v:00", endStr, endM)
+			}
+			fmtDT := findDay(time.Weekday(meeting.day)).Format(time.RFC3339)
+			date := string([]rune(fmtDT)[:strings.Index(fmtDT, "T")])
+			begDT := date + " " + begStr
+			endDT := date + " " + endStr
+			data[i].Beginning = begDT
+			data[i].Ending = endDT
+			data[i].Room = meeting.room
+			data[i].Name = class.name
+			i++
+			fmt.Printf("Beginning: %v\nEnding: %v\nRoom: %v\nName: %v\n", begDT, endDT, meeting.room, class.name)
+		}
+	}
+	fmt.Println(data)
+	jdata, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile(fmt.Sprintf("%v.json", state), jdata, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer os.Remove(fmt.Sprintf("%v.json", state))
+	cmd := exec.Command("./icsConv.py", fmt.Sprintf("%v.json", state))
+	ics, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+	w.Write(ics)
+}
+
 // ===== Google API Integration =====
 
 var conf *oauth2.Config
@@ -277,9 +356,13 @@ func genAuthURL(state string) string {
 // Generates CSRF Token
 // Taken from https://skarlso.github.io/2016/06/12/google-signin-with-go/
 func randToken() string {
-	b := make([]byte, 32)
-	rand.Read(b)
-	return base64.StdEncoding.EncodeToString(b)
+	tok := "/"
+	for strings.Contains(tok, "/") {
+		b := make([]byte, 32)
+		rand.Read(b)
+		tok = base64.StdEncoding.EncodeToString(b)
+	}
+	return tok
 }
 
 func genCalendar(sched schedule, srv *calendar.Service) {
@@ -501,6 +584,7 @@ func main() {
 	http.HandleFunc("/auth", authPage)
 	http.HandleFunc("/login", loginPage)
 	http.HandleFunc("/export", exportPage)
+	http.HandleFunc("/ics", icsPage)
 	http.Handle("/trouble", http.RedirectHandler("https://www.github.com/christopherm99/student-calendar-populator", 300))
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	http.ListenAndServe(":8080", nil)
