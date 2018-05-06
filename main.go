@@ -337,7 +337,7 @@ func icsPage(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Content-Disposition", "Attachment; filename=\"cal.ics\"")
 	w.Write(ics)
-	http.Redirect(w, r, "/" http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
 // ===== Google API Integration =====
