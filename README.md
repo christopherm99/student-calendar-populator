@@ -1,5 +1,6 @@
 # Student Calendar Generator
 Christopher Milan, 2018
+Check out the website [here](christopherm99.github.io/student-calendar-populator)!
 ## Overview
 Contains Golang server backend, HTML templates, and other necessary files.
 ## Setting it up
